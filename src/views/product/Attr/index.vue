@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-card style="magin: 20px 0">
-      <CategorySelect @getCategoryId="getCategoryId" />
+      <CategorySelect @getCategoryId="getCategoryId" :show="!isShowTable" />
     </el-card>
     <el-card>
       <div v-show="isShowTable">
@@ -99,13 +99,28 @@
           </el-table-column>
           <el-table-column width="width" prop="prop" label="操作">
             <template slot-scope="{ row, $index }">
-              <el-button type="danger" icon="el-icon-delete" size="mini"
-                >删除</el-button
+              <!-- 气泡提示框     旧版本elementUi中是onConfirm事件-->
+              <el-popconfirm
+                :title="`你确定删除${row.valueName}吗？`"
+                @onConfirm="deleteAttrValue($index)"
               >
+                <el-button
+                  slot="reference"
+                  type="danger"
+                  icon="el-icon-delete"
+                  size="mini"
+                  >删除</el-button
+                >
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
-        <el-button type="primary">保存</el-button>
+        <el-button
+          type="primary"
+          @click="addOrUpdateAttr"
+          :disabled="attrInfo.attrValueList.length < 1"
+          >保存</el-button
+        >
         <el-button @click="isShowTable = true">取消</el-button>
       </div>
     </el-card>
@@ -240,7 +255,6 @@ export default {
       if (isRepeat) {
         return;
       }
-
       // row:形参是当前用户添加的最新的属性值
       // 当前编辑模式变为查看模式【让input小时，显示span】
       row.flag = false;
@@ -256,12 +270,51 @@ export default {
         // 获取相应的元素实现聚焦
         this.$refs[index].focus();
       });
-    },    
+    },
+    // 气泡确认框的回调
+    deleteAttrValue(index) {
+      this.attrInfo.attrValueList.splice(index, 1);
+    },
+    // 保存按钮：进行添加属性或修改属性的操作
+    async addOrUpdateAttr() {
+      /*  整理参数：
+        1.如果用户添加了很多属性值，且属性值是空则不能提交给服务器
+        2. 提交给服务器数据当中不应该出现flag字段 
+        
+      */
+      this.attrInfo.attrValueList = this.attrInfo.attrValueList.filter(
+        (value) => {
+          // 过滤掉属性值不是空的
+          if (value.valueName.trim() !== "") {
+            // 删除掉flag属性
+            delete value.flag;
+            return true;
+          }
+        }
+      );
+      // 发请求
+      let result;
+      try {
+        result = await this.$API.attr.reqAddOrUpdateAttr(this.attrInfo);
+        if (result.code == 200) {
+          this.$message({ type: "success", message: "保存成功" });
+        }
+        this.isShowTable = true;
+        // 保存成功再次发请求展示数据
+        this.getAttrList();
+      } catch (error) {
+        this.$message("保存失败");
+        console.log("error :>> ", error);
+      }
+    },
   },
   mounted() {
-    this.$nextTick(() => {
-      console.log(this.$refs);
-    });
+    /* 思考？为啥这里插槽中的使用ref获取不到，必须使用dom才能获取到 */
+    // this.$nextTick(() => {
+    //   setTimeout(() => {
+    //     console.log(this.$refs);
+    //   }, 2000);
+    // });
   },
 };
 </script>

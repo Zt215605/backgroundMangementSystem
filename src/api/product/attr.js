@@ -35,7 +35,7 @@ export const reqAttrList = (category1Id, category2Id, category3Id) => request({ 
 
 */
 
-export const reqAddAttr = (data) => request({ url: `/admin/product/saveAttrInfo`, method: 'post', data });
+export const reqAddOrUpdateAttr = (data) => request({ url: `/admin/product/saveAttrInfo`, method: 'post', data });
 /* 
     {
         "attrName":"string",     //属性名

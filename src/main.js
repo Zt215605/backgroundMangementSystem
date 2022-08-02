@@ -35,9 +35,11 @@ Vue.use(ElementUI, { locale })
 
 import API from '@/api';
 import CategorySelect from '@/components/CategorySelect';
+import HintButton from '@/components/HintButton';
 Vue.prototype.$API=API;
 // 注册全局组件
 Vue.component(CategorySelect.name,CategorySelect);
+Vue.component(HintButton.name,HintButton);
 
 Vue.config.productionTip = false
 
