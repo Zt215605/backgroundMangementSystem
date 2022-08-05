@@ -71,7 +71,7 @@
         </el-pagination>
       </div>
       <SpuForm v-show="scene == 1" @changeScene="changeScene" ref="spu" />
-      <SkuForm v-show="scene == 2" ref="sku" />
+      <SkuForm v-show="scene == 2" ref="sku" @chaneScenes="chaneScenes" />
     </el-card>
   </div>
 </template>
@@ -186,12 +186,16 @@ export default {
       }
     },
     // 添加sku按钮的回调
-    addSku(row){
+    addSku(row) {
       // 切换场景为2
-      this.scene=2;
+      this.scene = 2;
       // 父组件调用子组件的方法，让子组件还请求，共三个
-      this.$refs.sku.getData(this.category1Id,this.category2Id,row);
-    }
+      this.$refs.sku.getData(this.category1Id, this.category2Id, row);
+    },
+    // skuForm通知父组件修改场景
+    chaneScenes(scene) {
+      this.scene = scene;
+    },
   },
   /* 
     个人扩展：父组件触发子组件事件个人最容易想到的是ref与全局事件总线绑定函数

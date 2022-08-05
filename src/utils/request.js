@@ -70,9 +70,10 @@ service.interceptors.response.use(
       return Promise.reject(new Error(res.message || 'Error'))
     } else {
       // 服务器响应成功
-      // console.log(res);  //个人发现这个项目后端返回的数据只返回了响应体部分
+      // console.log(res);  
       return res
     }
+    
   },
   error => {
     console.log('err' + error) // for debug

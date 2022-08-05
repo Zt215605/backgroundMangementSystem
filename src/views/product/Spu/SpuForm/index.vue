@@ -295,10 +295,10 @@ export default {
            这里出现无法显示主要是路径不对（应该使用imgUrl和imgName来存储路径与名称，但是写错成imageUrl与imageName这个就会导致服务器端校验不严格出现数据丢失问题）
             服务器存储数据也应该是读取对象身上的关键字来存取，这里为imageName与imageUrl所以就导致了数据丢失    
            */
-          imageName: item.name,
-          imageUrl: (item.response && item.response.data) || item.url,
-          // imgName:item.name,
-          // imgUrl:(item.response&&item.response.data)||item.url
+          // imageName: item.name,
+          // imageUrl: (item.response && item.response.data) || item.url,
+          imgName:item.name,
+          imgUrl:(item.response&&item.response.data)||item.url    
         };
       });
       let result;

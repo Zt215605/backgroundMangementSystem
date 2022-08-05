@@ -59,25 +59,39 @@
         </el-form>
       </el-form-item>
       <el-form-item label="图片列表">
-        <el-table border style="width: 100%">
-          <el-table-column
-            prop="prop"
-            label="label"
-            width="80"
-            type="selection"
-          >
+        <el-table
+          border
+          style="width: 100%"
+          :data="spuImageList"
+          @select-change="handleSelectionChange"
+        >
+          <el-table-column prop="prop" width="80" type="selection">
           </el-table-column>
           <el-table-column prop="prop" label="图片" width="width">
+            <template slot-scope="{ row, $index }">
+              <img :src="row.imgUrl" alt="" style="width: 200px" />
+            </template>
           </el-table-column>
-          <el-table-column prop="prop" label="名称" width="width">
+          <el-table-column prop="imgName" label="名称" width="width">
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width">
+            <template v-slot="{ row, $index }">
+              <el-button
+                type="primary"
+                v-if="row.isDefault == 0"
+                @click="changeDefault(row)"
+                >设置默认</el-button
+              >
+              <!-- 个人写法（传递索引来修改） -->
+              <!-- <el-button type="primary" v-if="row.isDefault==0" @click="changeDefault($index)">设置默认</el-button> -->
+              <el-button v-else>默认</el-button>
+            </template>
           </el-table-column>
         </el-table>
       </el-form-item>
       <el-form-item label="label">
-        <el-button type="primary">保存</el-button>
-        <el-button>取消</el-button>
+        <el-button type="primary" @click="save">保存</el-button>
+        <el-button @click="cancel">取消</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -145,6 +159,8 @@ export default {
         ],
       },
       spu: {},
+      // 收集图片的数据字段  需要注意的是：收集的数据目前缺少isDefault字段，将来提交给服务器数据的时候，需要整理参数
+      imageList: [],
     };
   },
   methods: {
@@ -160,17 +176,22 @@ export default {
       let result3;
       try {
         // 获取图片的数据
-        result1 = await this.$API.sku.reqSpuImageList(spu.id);
+        result1 = await this.$API.spu.reqSpuImageList(spu.id);
         if (result1.code == 200) {
-          this.spuImageList = result1.data;
+          // 服务器返回的数据没有isDefault字段，这个字段用来控制哪一个时默认设置，手动添加上
+          let list = result1.data;
+          list.forEach((item) => {
+            item.isDefault = 0;
+          });
+          this.spuImageList = list;
         }
         //获取销售属性的数据
-        result2 = await this.$API.sku.reqSpuSaleAttrList(spu.id);
+        result2 = await this.$API.spu.reqSpuSaleAttrList(spu.id);
         if (result2.code == 200) {
           this.spuSaleAttrList = result2.data;
         }
         // 获取平台属性的数据
-        result3 = await this.$API.sku.reqAttrInfoList(
+        result3 = await this.$API.spu.reqAttrInfoList(
           category1Id,
           category2Id,
           spu.category3Id
@@ -181,6 +202,103 @@ export default {
       } catch (error) {
         console.warn("error :>> ", error);
       }
+    },
+    // table表格复选框按钮的事件
+    handleSelectionChange(params) {
+      // 获取到用户选中图片的信息数据，当前手机的数据缺少isDefault字段
+      this.imageList = params;
+    },
+    // 修改默认的回调
+    changeDefault(row) {
+      // 图片列表的数据isDefault字段变为0
+      this.spuImageList.forEach((item) => {
+        item.isDefault = 0;
+      });
+      // 点击的变为1
+      row.isDefault = 1;
+      // 收集默认图片地址
+      this.skuInfo.skuDefaultImg = row.imgUrl;
+    },
+    // 个人写法（通过传递索引来修改）：
+    // changeDefault(index){
+    //   // 图片列表的数据isDefault字段变为0
+    //   this.spuImageList.forEach(item=>{
+    //     item.isDefault=0;
+    //   });
+    //   // 点击的变为1
+    //   this.spuImageList[index].isDefault=1;
+    // 收集默认图片地址
+    //    this.skuInfo.skuDefaultImg=this.spuImageList[index].imgUrl;
+    // }
+    // 取消按钮事件回调
+    cancel() {
+      // 让父组件切换场景
+      this.$emit("chaneScenes", 0);
+      // 清除数据
+      console.log(this);
+      Object.assign(this._data, this.$options.data());
+    },
+    // 保存事件的回调
+    async save() {
+      // 整理参数
+      // 整理平台属性
+      const { attrInfoList, skuInfo ,spuSaleAttrList,imageList} = this;
+      /* 
+        // 整理平台属性的数据方式一：
+        let arr=[];
+        // 把收集到的数据先整理一下
+        attrInfoList.forEach(item=>{
+          // 当前平台属性用户进行了选择
+          if(item.attrIdAndValueId){
+            const [attrId,valueId]=item.attrIdAndValueId.split(":");
+            // 携带给服务器的参数应该是一个对象
+            let obj={valueId,attrId};
+            arr.push(obj);
+          }
+        });
+        // 将整理好的参数赋值给skuInfo.skuAttrValueList
+        skuInfo.skuAttrValueList=arr; 
+      */
+      //  方式二 这种用法要求对reduce熟练
+      let result = attrInfoList.reduce((prev, item) => {
+        if (item.attrIdAndValueId) {
+          const [attrId, valueId] = item.attrIdAndValueId.split(":");
+          prev.push({ attrId, valueId });
+        }
+        return prev;
+      }, []);
+      skuInfo.skuAttrValueList = result;
+      // 整理销售属性   
+      skuInfo.skuSaleAttrValueList=spuSaleAttrList.reduce((prev,item)=>{
+        if(item.attrIdAndValueId){
+          const [saleAttrId,saleAttrValueId]=item.attrIdAndValueId.split(':');
+          prev.push({saleAttrId,saleAttrValueId});
+        }
+        return prev;
+      },[]);
+      // 整理图片数据
+      skuInfo.skuImageList=imageList.map((item)=>{
+        return {
+          imgName:item.imgName,
+          imgUrl:item.imgUrl,
+          isDefault:item.isDefault,
+          spuImgId:item.id
+        }
+      });
+      // 发请求
+      try {
+              console.log(skuInfo);
+              let res=await this.$API.spu.reqAddSku(skuInfo);  
+              if(res.code==200){
+                this.$message({type:'success',message:'添加sku成功'});
+                this.$emit('changeScenes',0);
+              }
+      } catch (error) {
+        console.log('error :>> ', error);
+      }
+      // 个人注释：这里出现了一个测试错误是因为后端校验导致，这里某些属性不添加默认值后端无法通过
+      // 这里的校验又不同于前面那里，前面那个问题传递空对象数据过去服务器都返回成功校验不严谨，这里严谨一点
+
     },
   },
 };
