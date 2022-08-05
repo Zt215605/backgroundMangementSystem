@@ -1,13 +1,19 @@
 <template>
   <div>
     <el-card style="margin: 20px 0">
-      <CategorySelect @getCategoryId="getCategoryId" :show="!show" />
+      <CategorySelect @getCategoryId="getCategoryId" :show="scene != 0" />
     </el-card>
     <el-card>
       <!-- 这里将来是有三部分进行切换 -->
       <div v-show="scene == 0">
         <!-- 展示spu列表的结构 -->
-        <el-button type="primary" icon="el-icon-plus" @click="addSpu" :disabled="!category3Id">添加SPU</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          @click="addSpu"
+          :disabled="!category3Id"
+          >添加SPU</el-button
+        >
         <el-table style="width: 100%" border :data="records">
           <el-table-column type="index" label="序号" width="80" align="center">
           </el-table-column>
@@ -22,6 +28,7 @@
                 icon="el-icon-plus"
                 size="mini"
                 title="添加sku"
+                @click="addSku(row)"
               ></hint-button>
               <hint-button
                 type="warning"
@@ -36,12 +43,18 @@
                 size="mini"
                 title="查看当前spu全部sku列表"
               ></hint-button>
-              <hint-button
-                type="danger"
-                icon="el-icon-danger"
-                size="mini"
-                title="删除spu"
-              ></hint-button>
+              <el-popconfirm
+                title="这是一段内容确定删除吗？"
+                @onConfirm="deleteSpu(row)"
+              >
+                <hint-button
+                  type="danger"
+                  icon="el-icon-danger"
+                  size="mini"
+                  title="删除spu"
+                  slot="reference"
+                ></hint-button>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
@@ -57,8 +70,8 @@
         >
         </el-pagination>
       </div>
-      <SpuForm v-show="scene == 1" @changeScene="changeScene" ref="spu"/>
-      <SkuForm v-show="scene == 2" />
+      <SpuForm v-show="scene == 1" @changeScene="changeScene" ref="spu" />
+      <SkuForm v-show="scene == 2" ref="sku" />
     </el-card>
   </div>
 </template>
@@ -134,25 +147,54 @@ export default {
       this.getSpuList();
     },
     // 添加spu的回调
-    addSpu(){
-      this.scene=1;
+    addSpu() {
+      this.scene = 1;
+      // 通知子组件SpuForm发请求 并将category3Id通过函数参数的形式传递过去        //这种写法调用函数并顺便给参数传递过去还省去了props传递的方式
+      this.$refs.spu.addSpuData(this.category3Id);
     },
     // 修改某一个spu
-    updateSpu(row){
-      this.scene=1;
+    updateSpu(row) {
+      this.scene = 1;
       // 获取子组件的SpuForm
       // 在负组件中可以通过$ref获取子组件，vm.$children来获取等等
       this.$refs.spu.initSpuData(row);
     },
     // 自定义事件回调(spuForm)
-    changeScene(scene){
+    changeScene({ scene, flag }) {
+      // flag这个形参是为了区分保存按钮时添加还是修改
       // 切换结构（场景）
-        this.scene=scene;
+      this.scene = scene;
+      // 子组件通知父组件切换场景，需要再次获取spu列表的数据进行展示
+      if (flag == "修改") {
+        this.getSpuList(this.page);
+      } else {
+        this.getSpuList();
+      }
+    },
+    // 删除spu的回调
+    async deleteSpu(row) {
+      let result;
+      try {
+        result = await this.$API.spu.reqDeleteSpu(row.id);
+        if (result.code == 200) {
+          this.$message({ type: "success", message: "删除成功" });
+          // 代表spu个数大于1停留到当前，反之回到上一页
+          this.getSpuList(this.records.length > 1 ? this.page : this.page - 1);
+        }
+      } catch (error) {
+        console.warn("error :>> ", error);
+      }
+    },
+    // 添加sku按钮的回调
+    addSku(row){
+      // 切换场景为2
+      this.scene=2;
+      // 父组件调用子组件的方法，让子组件还请求，共三个
+      this.$refs.sku.getData(this.category1Id,this.category2Id,row);
     }
   },
   /* 
     个人扩展：父组件触发子组件事件个人最容易想到的是ref与全局事件总线绑定函数
-
 
     网络扩展：
       Vue 父组件中触发子组件的方法：

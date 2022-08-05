@@ -24,6 +24,7 @@
       <el-table-column prop="tmName" label="品牌名称" width="width">
       </el-table-column>
       <el-table-column prop="logoUrl" label="品牌LOGO" width="width">
+        <!-- row是每个数据，$index是每个数据的索引值 -->
         <template slot-scope="{ row, $index }">
           <img :src="row.logoUrl" alt="picture" style="width: 80px" />
         </template>

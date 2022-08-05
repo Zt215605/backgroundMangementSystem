@@ -282,6 +282,10 @@ export default {
         2. 提交给服务器数据当中不应该出现flag字段 
         
       */
+      /* 
+        个人注释：这里试了一下空字符串携带给后端，结果后端可以存取，说明后端校验不严格，
+        从这也看出来在工作中表单验证一定要校验好发请请求 
+      */
       this.attrInfo.attrValueList = this.attrInfo.attrValueList.filter(
         (value) => {
           // 过滤掉属性值不是空的
@@ -321,3 +325,4 @@ export default {
 
 <style scoped>
 </style>
+

@@ -20,33 +20,19 @@ export const reqAttrList = (category1Id, category2Id, category3Id) => request({ 
 // 添加属性与属性值的接口
 //   /admin/product/saveAttrInfo   post
 /* 
-{
-    "attrName":"",     //属性名
-    "attrValueList":[       //属性名中的属性值，因为属性值可以是多个，因此需要的是数组
-        {
-            "attrId":0,     //属性的id
-            "valueName":"string"    //属性值
-        }
-    ],
-    "categoryId":0,    //category3Id 
-    "categoryLevel":3,   
+    {
+        "attrName":"",     //属性名
+        "attrValueList":[       //属性名中的属性值，因为属性值可以是多个，因此需要的是数组
+            {
+                "attrId":0,     //属性的id
+                "valueName":"string"    //属性值
+            }
+        ],
+        "categoryId":0,    //category3Id 
+        "categoryLevel":3,   
 
-}
+    }
 
 */
 
 export const reqAddOrUpdateAttr = (data) => request({ url: `/admin/product/saveAttrInfo`, method: 'post', data });
-/* 
-    {
-        "attrName":"string",     //属性名
-        "attrValueList":[       //属性名称中的属性值，可以是多个，所以需要的是数组
-            {
-                "attrId":0,    //属性的id
-                "valueName":"string"    //属性值
-            }
-        ],
-        "categoryId":0,         //category3Id
-        "categoryLevel":3,
-    }
-
-*/
