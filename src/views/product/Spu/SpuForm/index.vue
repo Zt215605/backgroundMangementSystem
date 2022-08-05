@@ -289,7 +289,7 @@ export default {
       // 携带参数：对于图片，需要携带的imgUrl与imgName字段
       this.spu.spuImageList = this.spuImageList.map((item) => {
         return {
-          /* 
+          /*     这里存在一个问题：
           这里教学视频中写错了，应该是imgUrl与imgName  但是后端还不够严谨就连这个属性没有都可以返回状态码200
            ？？？ 思考一下这里数据不正常请求回来之后是如何显示的，img标签是无法显示还是可以显示
            这里出现无法显示主要是路径不对（应该使用imgUrl和imgName来存储路径与名称，但是写错成imageUrl与imageName这个就会导致服务器端校验不严格出现数据丢失问题）
