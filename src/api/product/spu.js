@@ -38,7 +38,7 @@ export const reqAddOrUpdate = (spuInfo) => {
 
 // 删除Spu
 //   /admin/product/deleteSpu/{spuId}
-export const reqDeleteSpu=(spuId)=>request({url:`/admin/product/deleteSpu/${spuId}`,mtehod:'delete'});
+export const reqDeleteSpu=(spuId)=>request({url:`/admin/product/deleteSpu/${spuId}`,method:'delete'});
 
 /*   
     上面写了这个接口
@@ -58,5 +58,7 @@ export const reqAttrInfoList = (category1Id, category2Id, category3Id) => reques
 //   /admin/product/saveSkuInfo  post
 export const reqAddSku=(skuInfo)=>request({url:`/admin/product/saveSkuInfo`,method:'post',data:skuInfo});
 
-
+// 获取sku列表苏剧的接口
+//   /admin/product/findBySpuId/{spuId}  
+export const reqSkuList=(spuId)=>request({url:`/admin/product/findBySpuId/${spuId}`,method:'get'});
 

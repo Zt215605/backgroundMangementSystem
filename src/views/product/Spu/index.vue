@@ -42,6 +42,7 @@
                 icon="el-icon-info"
                 size="mini"
                 title="查看当前spu全部sku列表"
+                @click="handler(row)"
               ></hint-button>
               <el-popconfirm
                 title="这是一段内容确定删除吗？"
@@ -71,8 +72,48 @@
         </el-pagination>
       </div>
       <SpuForm v-show="scene == 1" @changeScene="changeScene" ref="spu" />
-      <SkuForm v-show="scene == 2" ref="sku" @chaneScenes="chaneScenes" />
+      <SkuForm v-show="scene == 2" ref="sku" @changeScenes="changeScenes" />
     </el-card>
+    <el-dialog
+      :title="`${spu.spuName}的sku列表`"
+      :visible.sync="dialogTableVisible"
+      :before-close="close"
+    >
+      <el-table :data="skuList" v-loading="loading">
+        <el-table-column
+          prop="skuName"
+          label="名称"
+          width="width"
+          header-align="center"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          header-align="center"
+          align="center"
+          property="price"
+          label="价格"
+          width="width"
+        ></el-table-column>
+        <el-table-column
+          header-align="center"
+          align="center"
+          prop="weight"
+          label="重量"
+          width="width"
+        >
+        </el-table-column>
+        <el-table-column
+          header-align="center"
+          align="center"
+          label="默认图片"
+          width="width"
+        >
+          <template v-slot="{ row, $index }">
+            <img :src="row.skuDefaultImg" alt="" style="width: 100px" />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -94,6 +135,11 @@ export default {
       records: [], //存储spu列表的数据
       total: 0, //总共数据条数
       scene: 0, //0代表的展示spu列表数据  1添加sup|修改spu  2添加sku
+      // 控制对话框的显示与隐藏
+      dialogTableVisible: false,
+      spu: {},
+      skuList: [], //存储sku列表的数据
+      loading: true,
     };
   },
   components: {
@@ -193,9 +239,38 @@ export default {
       this.$refs.sku.getData(this.category1Id, this.category2Id, row);
     },
     // skuForm通知父组件修改场景
-    chaneScenes(scene) {
+    changeScenes(scene) {
       this.scene = scene;
     },
+    //查看sku的按钮回掉
+    async handler(spu) {
+      // this.skuList=[];     //这种方式是我写的，在点开的时候将数据置空，老师的写法是写在关闭对话框的回调中
+      // loading显示
+      // this.loading = true;
+      // 点击后对话框可见
+      this.dialogTableVisible = true;
+      // 保存spu信息
+      this.spu = spu;
+      // 获取sku列表的数据进行展示
+      let result;
+      try {
+        result = await this.$API.spu.reqSkuList(spu.id);
+        if (result.code == 200) {
+          this.skuList = result.data;
+          // loading隐藏
+          this.loading = false;
+        }
+      } catch (error) {
+        console.warn("error :>> ", error);
+      }
+    },
+    // 关闭对话框的回调
+    close(done){
+      this.loading=true;
+      this.skuList=[];
+      // 用于关闭对话框
+      done();
+    }
   },
   /* 
     个人扩展：父组件触发子组件事件个人最容易想到的是ref与全局事件总线绑定函数

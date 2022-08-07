@@ -79,7 +79,7 @@
           </el-table-column>
           <el-table-column width="width" prop="prop" label="属性值名称">
             <template slot-scope="{ row, $index }">
-              <!-- 思考？ 即使这部分结构不隐藏在这里刚开始为啥也拿不到el-input这个实例 -->
+              <!-- 思考？ 即使这部分结构不隐藏在这里刚开始为啥使用ref也拿不到el-input这个实例 -->
               <el-input
                 v-model="row.valueName"
                 placeholder="请输入属性值名称"

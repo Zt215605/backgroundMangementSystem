@@ -233,16 +233,15 @@ export default {
     // 取消按钮事件回调
     cancel() {
       // 让父组件切换场景
-      this.$emit("chaneScenes", 0);
+      this.$emit("changeScenes", 0);
       // 清除数据
-      console.log(this);
       Object.assign(this._data, this.$options.data());
     },
     // 保存事件的回调
     async save() {
       // 整理参数
       // 整理平台属性
-      const { attrInfoList, skuInfo ,spuSaleAttrList,imageList} = this;
+      const { attrInfoList, skuInfo, spuSaleAttrList, imageList } = this;
       /* 
         // 整理平台属性的数据方式一：
         let arr=[];
@@ -268,37 +267,37 @@ export default {
         return prev;
       }, []);
       skuInfo.skuAttrValueList = result;
-      // 整理销售属性   
-      skuInfo.skuSaleAttrValueList=spuSaleAttrList.reduce((prev,item)=>{
-        if(item.attrIdAndValueId){
-          const [saleAttrId,saleAttrValueId]=item.attrIdAndValueId.split(':');
-          prev.push({saleAttrId,saleAttrValueId});
+      // 整理销售属性
+      skuInfo.skuSaleAttrValueList = spuSaleAttrList.reduce((prev, item) => {
+        if (item.attrIdAndValueId) {
+          const [saleAttrId, saleAttrValueId] =
+            item.attrIdAndValueId.split(":");
+          prev.push({ saleAttrId, saleAttrValueId });
         }
         return prev;
-      },[]);
+      }, []);
       // 整理图片数据
-      skuInfo.skuImageList=imageList.map((item)=>{
+      skuInfo.skuImageList = imageList.map((item) => {
         return {
-          imgName:item.imgName,
-          imgUrl:item.imgUrl,
-          isDefault:item.isDefault,
-          spuImgId:item.id
-        }
+          imgName: item.imgName,
+          imgUrl: item.imgUrl,
+          isDefault: item.isDefault,
+          spuImgId: item.id,
+        };
       });
       // 发请求
       try {
-              console.log(skuInfo);
-              let res=await this.$API.spu.reqAddSku(skuInfo);  
-              if(res.code==200){
-                this.$message({type:'success',message:'添加sku成功'});
-                this.$emit('changeScenes',0);
-              }
+        let res = await this.$API.spu.reqAddSku(skuInfo);
+        if (res.code == 200) {
+          this.$message({ type: "success", message: "添加sku成功" });
+          this.$emit("changeScenes", 0);
+        }
       } catch (error) {
-        console.log('error :>> ', error);
+        console.log("error :>> ", error);
       }
       /* 个人注释：这里出现了一个测试错误是因为后端校验导致，这里重量这个数据不添加默认值后端无法通过
       （此处前端没有做表单验证所以难以发现问题） */
-
+      // 个人注释：这里老师没有清理数据自己做一下
     },
   },
 };
