@@ -2,7 +2,7 @@
   <div>
     <Card />
     <Sale />
-    <Observe />
+    <Observe></Observe>
   </div>
 </template>
 
